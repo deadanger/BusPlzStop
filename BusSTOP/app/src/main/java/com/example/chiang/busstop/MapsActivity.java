@@ -7,6 +7,7 @@ import android.util.Log;
 import com.example.chiang.busstop.Model.ApiService;
 import com.example.chiang.busstop.Model.Bus;
 import com.example.chiang.busstop.Model.Buses;
+import com.example.chiang.busstop.Model.TranslinkClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -14,8 +15,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.mobprofs.retrofit.converters.SimpleXmlConverter;
 
 
+import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class MapsActivity extends FragmentActivity {
 
@@ -53,7 +56,7 @@ public class MapsActivity extends FragmentActivity {
 
     private void setUpMap() {
 
-       // mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(49.17018, -123.13662)));
+        // mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(49.17018, -123.13662)));
 
         //Default Marker
         mMap.addMarker(new MarkerOptions()
@@ -64,41 +67,43 @@ public class MapsActivity extends FragmentActivity {
         Data myData = new Data();
         Log.i("Step", "start execute");
 
-        myData.drawMarker(myData.getBuses(99));
+        myData.getBuses(99);
         Log.i("Step", "end execute");
     }
 
 
     private class Data{
 
-        public  Buses getBuses(int routeNo) {
+        public  void getBuses(int routeNo) {
             Log.i("Step", "start doInBackground");
             Buses busList;
-            RestAdapter restAdapter = new RestAdapter.Builder()
-                    .setEndpoint("http://api.translink.ca/rttiapi/v1")
-                    .setConverter(new SimpleXmlConverter())
-                    .setLogLevel(RestAdapter.LogLevel.FULL)
-                    .build();
-            ApiService apiService = restAdapter.create(ApiService.class);
 
-            try {
-                busList = apiService.getBus(apikey, 99);
-                return busList;
-            } catch (RetrofitError e) {
-                System.out.println(e.getResponse().getStatus());
-            }
-                return new Buses();
+            TranslinkClient.getBusesData().getBuses(apikey, 99, new Callback<Buses>() {
+                @Override
+                public void success(Buses buses, Response response) {
+                    drawMarker(buses);
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    Log.e("failure", String.valueOf(error.getMessage().contains("authentication")));
+                    Log.e("failure", String.valueOf(error.getResponse().getStatus()));
+                    Log.e("failure", String.valueOf(error.getResponse().getBody()));
+                    Log.e("failure", String.valueOf(error.getResponse().getUrl()));
+                }
+            });
         }
+    }
 
-        public void drawMarker(Buses lob){
-            Log.i("Step", "onPostExecute");
-            for(Bus bus: lob){
-                mMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(bus.latitude, bus.longitude))
-                        .title(bus.direction));
-            }
+    public void drawMarker(Buses lob){
+        Log.i("Step", "onPostExecute");
+        for(Bus bus: lob){
+            mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(bus.latitude, bus.longitude))
+                    .title(bus.direction));
         }
-
     }
 
 }
+
+

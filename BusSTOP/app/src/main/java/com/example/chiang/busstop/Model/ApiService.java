@@ -1,5 +1,8 @@
 package com.example.chiang.busstop.Model;
 
+import com.squareup.okhttp.Call;
+
+import retrofit.Callback;
 import retrofit.http.GET;
 import retrofit.http.Path;
 import retrofit.http.Query;
@@ -10,5 +13,5 @@ import retrofit.http.Query;
 public interface ApiService {
 
     @GET("/buses")
-    public Buses getBus(@Query("apikey") String api, @Query("routeNo") int busNo);
+    public void getBuses(@Query("apikey") String api, @Query("routeNo") int busNo, Callback<Buses> cb);
 }
