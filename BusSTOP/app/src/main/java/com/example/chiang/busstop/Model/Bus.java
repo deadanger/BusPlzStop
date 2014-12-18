@@ -1,38 +1,66 @@
 
 package com.example.chiang.busstop.Model;
 
-import org.simpleframework.xml.Default;
-import org.simpleframework.xml.DefaultType;
-import org.simpleframework.xml.Element;
-import org.simpleframework.xml.Root;
-
 /*
  * Created by chiang on 12/15/2014.
  */
 
 
-@Root(name = "Bus")
 public class Bus {
-   @Element(name = "VehicleNo")
-    public int vehicleNo;
+    public int getVehicleNo() {
+        return vehicleNo;
+    }
 
-   @Element(name = "RouteNo")
-    public int routeNo;
+    public void setVehicleNo(int vehicleNo) {
+        this.vehicleNo = vehicleNo;
+    }
 
-    @Element(name = "Direction")
-    public String direction;
+    public int getRouteNo() {
+        return routeNo;
+    }
 
-    @Element(name = "Destination")
-    public String destination;
+    public void setRouteNo(int routeNo) {
+        this.routeNo = routeNo;
+    }
 
-    @Element(name = "Latitude")
-    public double latitude;
+    public String getDirection() {
+        return direction;
+    }
 
-    @Element(name = "Longitude")
-    public double longitude;
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
 
-    @Element(name = "RecordedTime")
-    public String recordedTime;
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getRecordedTime() {
+        return recordedTime;
+    }
+
+    public void setRecordedTime(String recordedTime) {
+        this.recordedTime = recordedTime;
+    }
+
+    private int vehicleNo;
+    private int routeNo;
+    private String direction;
+    private double latitude;
+    private double longitude;
+    private String recordedTime;
 
 
 
