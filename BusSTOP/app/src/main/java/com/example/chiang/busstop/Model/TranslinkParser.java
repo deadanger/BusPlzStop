@@ -22,7 +22,7 @@ import javax.xml.parsers.SAXParserFactory;
  */
 public class TranslinkParser extends DefaultHandler {
 
-    public ArrayList<Bus> buslist = new ArrayList<Bus>();
+    public ArrayList<Bus> buslist;
     public Bus bus;
     private String TAG = "TranslinkParser";
     private String origin =
@@ -38,6 +38,7 @@ public class TranslinkParser extends DefaultHandler {
 
     public void get(){
         try {
+            buslist = new ArrayList<Bus>();
             XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
             xmlReader.setContentHandler(this);
             xmlReader.parse(new InputSource(new URL(origin).openStream()));

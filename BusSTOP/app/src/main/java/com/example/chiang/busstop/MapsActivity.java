@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.chiang.busstop.Model.Bus;
 import com.example.chiang.busstop.Model.TranslinkParser;
@@ -39,20 +40,32 @@ public class MapsActivity extends FragmentActivity {
     private Map<Marker,Bus> displayList;
     private TranslinkParser translink;
     private Button routeChoice;
+    private Button update;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        getRouteNo();
         routeChoice = (Button) findViewById(R.id.routeChoice);
         routeChoice.bringToFront();
         routeChoice.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getRouteNo();
+                Toast.makeText(getApplicationContext(), "new route", Toast.LENGTH_SHORT).show();
             }
         });
-        getRouteNo();
+        update = (Button) findViewById(R.id.update);
+        update.bringToFront();
+        update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new TranslinkClient().execute();
+                Toast.makeText(getApplicationContext(), "updating", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         setUpMapIfNeeded();
     }
 
@@ -150,7 +163,7 @@ public class MapsActivity extends FragmentActivity {
                 for (Bus bus : displayList.values()) {
                     bounds.include(new LatLng(bus.getLatitude(), bus.getLongitude()));
                 }
-                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 10));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 50));
             }
             routeChoice.setEnabled(true);
         }
