@@ -62,7 +62,5 @@ public class Bus {
     private double longitude;
     private String recordedTime;
 
-
-
 }
 

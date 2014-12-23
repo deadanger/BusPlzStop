@@ -8,8 +8,11 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
@@ -23,10 +26,15 @@ public class TranslinkParser extends DefaultHandler {
     public Bus bus;
     private String TAG = "TranslinkParser";
     private String origin =
-            "http://api.translink.ca/rttiapi/v1/buses?apikey=faYApdPzIJThbIF16yCP&routeNo=099";
+            "http://api.translink.ca/rttiapi/v1/buses?apikey=faYApdPzIJThbIF16yCP&routeNo=";
     private String data = "";
     private Boolean dataTag = false;
+    private Set<Integer> blackList = new HashSet<Integer>();
 
+    public TranslinkParser(int busRoute){
+        origin = origin + busRoute;
+        get();
+    }
 
     public void get(){
         try {
@@ -44,7 +52,6 @@ public class TranslinkParser extends DefaultHandler {
         super.startElement(uri, localName, qName, attributes);
         dataTag = true;
         data = "";
-        Log.i(TAG, localName);
         if(localName.equals("Bus"))
             bus = new Bus();
 
@@ -68,7 +75,9 @@ public class TranslinkParser extends DefaultHandler {
         }else if(localName.equalsIgnoreCase("Direction")) {
             bus.setDirection(data);
         } else if (localName.equals("Bus")){
-            buslist.add(bus);
+            if(!blackList.contains(bus.getVehicleNo())) {
+                buslist.add(bus);
+            }
         }
 
 
@@ -81,5 +90,13 @@ public class TranslinkParser extends DefaultHandler {
             data = new String(ch, start, length);
             dataTag = false;
         }
+    }
+
+    public void addBlackList(int blockedID){
+        blackList.add(blockedID);
+    }
+
+    public void reset(){
+        blackList.clear();
     }
 }
