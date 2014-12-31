@@ -33,7 +33,7 @@ public class BusParser extends DefaultHandler{
         get();
     }
 
-    public void get(){
+    private void get(){
         try {
             buslist = new ArrayList<Bus>();
             XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();

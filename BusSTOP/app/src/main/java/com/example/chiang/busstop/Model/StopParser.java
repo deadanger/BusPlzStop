@@ -3,6 +3,7 @@ package com.example.chiang.busstop.Model;
 import android.util.Log;
 
 import com.example.chiang.busstop.MapsActivity;
+import com.google.android.gms.maps.model.LatLng;
 
 import org.simpleframework.xml.Default;
 import org.xml.sax.Attributes;
@@ -23,24 +24,28 @@ import javax.xml.parsers.SAXParserFactory;
  */
 public class StopParser extends DefaultHandler{
 
-    public ArrayList<Stop> stopList;
-    public Stop stop;
+    public ArrayList<Stop> getStopList() {
+        return stopList;
+    }
+
+    private ArrayList<Stop> stopList;
+    private Stop stop;
     private String TAG = "StopParser";
     private String origin;
     private String data = "";
     private Boolean dataTag = false;
     private Set<Integer> blackList = new HashSet<Integer>();
 
-    public StopParser(double lat, double lon, int busRoute){
-        origin = "http://api.translink.ca/rttiapi/v1/stops?" +
-                "apikey=faYApdPzIJThbIF16yCP&lat=" + lat +
-                "&long=" + lon +
+    public StopParser(LatLng loc, int busRoute){
+        origin ="http://api.translink.ca/rttiapi/v1/stops?" +
+                "apikey=faYApdPzIJThbIF16yCP&lat=" + loc.latitude +
+                "&long=" + loc.longitude +
                 "&routeNo=" + busRoute +
                 "&radius=2000";
         get();
     }
 
-    public void get(){
+    private void get(){
         try {
             stopList = new ArrayList<Stop>();
             XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
