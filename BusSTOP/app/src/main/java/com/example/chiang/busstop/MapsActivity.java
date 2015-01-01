@@ -174,20 +174,12 @@ public class MapsActivity extends FragmentActivity {
             }
 
             if(resetStop) {
-                if(false) {
                     List<LatLng> los = new ArrayList<LatLng>();
 
                     for (Bus bus : myBusList) {
                         los.add(new LatLng(bus.getLatitude(), bus.getLongitude()));
                     }
                     stopManager = new BusStopManager(los, routeNo);
-                } else {
-                    Bus bus = myBusList.get(0);
-                    LatLng los = new LatLng(bus.getLatitude(),bus.getLongitude());
-                    stopManager = new BusStopManager(los, routeNo);
-                }
-
-
 
                 myBusStopList = stopManager.getStops();
                 resetStop = false;
