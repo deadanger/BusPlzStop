@@ -24,11 +24,10 @@ import javax.xml.parsers.SAXParserFactory;
  */
 public class StopParser extends DefaultHandler{
 
-    public ArrayList<Stop> getStopList() {
-        return stopList;
+    public Stop getStop() {
+        return stop;
     }
 
-    private ArrayList<Stop> stopList;
     private Stop stop;
     private String TAG = "StopParser";
     private String origin;
@@ -36,18 +35,15 @@ public class StopParser extends DefaultHandler{
     private Boolean dataTag = false;
     private Set<Integer> blackList = new HashSet<Integer>();
 
-    public StopParser(LatLng loc, int busRoute){
-        origin ="http://api.translink.ca/rttiapi/v1/stops?" +
-                "apikey=faYApdPzIJThbIF16yCP&lat=" + loc.latitude +
-                "&long=" + loc.longitude +
-                "&routeNo=" + busRoute +
-                "&radius=2000";
+    public StopParser(int stopNo){
+        origin ="http://api.translink.ca/rttiapi/v1/stops/" +
+                stopNo +
+                "?apikey=faYApdPzIJThbIF16yCP";
         get();
     }
 
     private void get(){
         try {
-            stopList = new ArrayList<Stop>();
             XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
             xmlReader.setContentHandler(this);
             xmlReader.parse(new InputSource(new URL(origin).openStream()));
@@ -88,14 +84,9 @@ public class StopParser extends DefaultHandler{
             stop.setLongitude(Double.parseDouble(data));
         }else if(localName.equalsIgnoreCase("Routes")) {
             stop.setRoutes(data);
-        } else if (localName.equals("Stop")){
-            if(!blackList.contains(stop.getStopNo())) {
-                stopList.add(stop);
-            }
         }
+   }
 
-
-    }
 
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {

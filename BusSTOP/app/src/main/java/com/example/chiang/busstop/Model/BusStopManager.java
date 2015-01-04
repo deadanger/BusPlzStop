@@ -1,5 +1,8 @@
 package com.example.chiang.busstop.Model;
 
+import android.text.style.TabStopSpan;
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -14,44 +17,30 @@ public class BusStopManager {
 
     private Set<Stop> stopSet;
     private StopParser parser;
-    final private double r = 0.052872;
-    private int counter = 3;
-    public BusStopManager(List<LatLng> locations, int routeNo){
-        parse(locations,routeNo);
+    private final String TAG = "BusStopManager";
+
+
+    public BusStopManager(Set<Integer> stopNoList){
+        stopSet = new HashSet<Stop>();
+        parse(stopNoList);
     }
 
-    private void parse(List<LatLng> locations, int routeNo){
-        List<Stop> stops = new ArrayList<Stop>();
-        for(LatLng loc: locations) {
-            stops.addAll(parseHelper(loc, routeNo, counter));
+    private void parse(Set<Integer> stopNoList){
+        for(Integer stopID: stopNoList){
+            parseHelper(stopID);
         }
-        stopSet = new HashSet<Stop>(stops);
     }
 
-    private List<Stop> parseHelper(LatLng location, int routeNo, int count){
-        if(count == 0){
-            return new ArrayList<Stop>();
-        }
+    private void parseHelper(int stopNo){
 
-        List<Stop> stops = new ArrayList<Stop>();
-
-        double lat = location.latitude;
-        double lon = location.longitude;
-
-        LatLng north = new LatLng(lat + r, lon);
-        LatLng south = new LatLng(lat - r, lon);
-        LatLng west = new LatLng(lat, lon - r);
-        LatLng east = new LatLng(lat, lon + r);
-
-        stops.addAll(parseHelper(location, routeNo, count--));
-        stops.addAll(parseHelper(north, routeNo, count--));
-        stops.addAll(parseHelper(south, routeNo, count--));
-        stops.addAll(parseHelper(west, routeNo, count--));
-        stops.addAll(parseHelper(east, routeNo, count--));
-        return stops;
+            parser = new StopParser(stopNo);
+            stopSet.add(parser.getStop());
     }
+
 
     public Set<Stop> getStops() {
         return stopSet;
     }
+
+
 }

@@ -28,7 +28,7 @@ public class BusParser extends DefaultHandler{
     private Boolean dataTag = false;
     private Set<Integer> blackList = new HashSet<Integer>();
 
-    public BusParser(int busRoute){
+    public BusParser(String busRoute){
         origin = origin + busRoute;
         get();
     }
