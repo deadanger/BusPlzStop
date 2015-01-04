@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -47,7 +48,6 @@ public class MapsActivity extends FragmentActivity {
     private Button update;
     private BusStopManager stopManager;
     private String routeNo;
-    private boolean resetStop = true;
     private Map<String, Set<Integer>> routeToStopID;
     private String[] routeOptions;
 
@@ -134,20 +134,21 @@ public class MapsActivity extends FragmentActivity {
     }
 
     private void getRouteNo(){
+        String[] datas = getResources().getStringArray(R.array.routeOptions);
+        final List<String> options = Arrays.asList(datas);
         final EditText input = new EditText(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(R.drawable.selected_bus);
         builder.setTitle("Bus Route Selection");
-        builder.setMessage("Type your bus route");
+        builder.setMessage("Type your bus route in full (99 is 099)");
         builder.setView(input);
-        resetStop = true;
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 try {
                     routeNo = input.getText().toString();
                     routeChoice.setEnabled(false);
-                    if(routeToStopID.get(routeNo) != null) {
+                    if(options.contains(routeNo)) {
                         new TranslinkClient().execute();
                     } else{
                         Toast.makeText(getApplicationContext(), "route Invalid", Toast.LENGTH_SHORT).show();
@@ -174,13 +175,10 @@ public class MapsActivity extends FragmentActivity {
             translink = new BusParser(routeNo);
             myBusList = translink.buslist;
 
-            if(resetStop) {
                 stopManager = new BusStopManager(routeToStopID.get(routeNo));
                 stopList = stopManager.getStops();
                 stopList.remove(null);
-            } else{
-                stopList = new HashSet<Stop>();
-            }
+
 
 
             return null;
@@ -192,7 +190,6 @@ public class MapsActivity extends FragmentActivity {
 
 
             mMap.clear();
-            if(resetStop) {
                 for (Stop stop : stopList) {
                     mMap.addMarker(new MarkerOptions()
                             .position(new LatLng(stop.getLatitude(), stop.getLongitude()))
@@ -201,7 +198,7 @@ public class MapsActivity extends FragmentActivity {
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.stop)));
 
                 }
-            }
+
             if(myBusList.size() != 0){
             for (Bus bus : myBusList) {
                 if(bus.getLatitude() != 0 && bus.getLongitude() != 0) {
@@ -221,12 +218,10 @@ public class MapsActivity extends FragmentActivity {
                 for (Bus bus : displayList.values()) {
                     bounds.include(new LatLng(bus.getLatitude(), bus.getLongitude()));
                 }
-                if(resetStop) {
                     for (Stop stop : stopList) {
                         bounds.include(new LatLng(stop.getLatitude(), stop.getLongitude()));
                     }
-                    resetStop = false;
-                }
+
 
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 50));
             }
