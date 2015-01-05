@@ -17,18 +17,22 @@ public class BusStopManager {
 
     private Set<Stop> stopSet;
     private StopParser parser;
+    private StopParserUpdate updateParser;
     private final String TAG = "BusStopManager";
+    private Set<Stop> deletedStops;
+    private Stop selectedStop;
 
 
-    public BusStopManager(Set<Integer> stopNoList){
+    public BusStopManager(){
         stopSet = new HashSet<Stop>();
-        parse(stopNoList);
+        deletedStops = new HashSet<Stop>();
     }
 
-    private void parse(Set<Integer> stopNoList){
+    public void parse(Set<Integer> stopNoList){
         for(Integer stopID: stopNoList){
             parseHelper(stopID);
         }
+       stopSet.remove(null);
     }
 
     private void parseHelper(int stopNo){
@@ -40,6 +44,33 @@ public class BusStopManager {
 
     public Set<Stop> getStops() {
         return stopSet;
+    }
+
+
+
+    // return true if the bus has arrived to a stop or passed a stop
+    public boolean update(Bus bus){
+        updateParser = new StopParserUpdate(bus);
+        Set<Stop> removingSet = updateParser.getStopList();
+        if(removingSet != null) {
+            if (stopSet.removeAll(updateParser.getStopList())) {
+                deletedStops.addAll(updateParser.getStopList());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Stop getSelectedStop() {
+        return selectedStop;
+    }
+
+    public void setSelectedStop(Stop selectedStop) {
+        this.selectedStop = selectedStop;
+    }
+
+    public void resetStops(){
+        deletedStops.clear();
     }
 
 

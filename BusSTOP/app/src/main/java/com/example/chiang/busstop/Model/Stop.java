@@ -69,6 +69,31 @@ public class Stop {
         this.routes = routes;
     }
 
+    public int getDistance() {
+        return distance;
+    }
+
+    public void setDistance(int distance) {
+        this.distance = distance;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Stop)) return false;
+
+        Stop stop = (Stop) o;
+
+        if (stopNo != stop.stopNo) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return stopNo;
+    }
+
     private double latitude;
     private double longitude;
     private int stopNo;
@@ -77,6 +102,6 @@ public class Stop {
     private String onStreet;
     private String atStreet;
     private String routes;
-
+    private int distance;
 
 }

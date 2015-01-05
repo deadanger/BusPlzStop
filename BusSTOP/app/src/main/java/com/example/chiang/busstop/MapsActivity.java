@@ -2,7 +2,6 @@ package com.example.chiang.busstop;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -17,7 +16,6 @@ import com.example.chiang.busstop.Model.BusParser;
 import com.example.chiang.busstop.Model.BusStopManager;
 import com.example.chiang.busstop.Model.RouteStopParser;
 import com.example.chiang.busstop.Model.Stop;
-import com.example.chiang.busstop.Model.StopParser;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -28,11 +26,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,19 +37,22 @@ public class MapsActivity extends FragmentActivity {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
-    private Map<Marker,Bus> displayList;
+    private Map<Marker,Bus> busMap;
+    private Map<Marker,Stop> stopMap;
     private BusParser translink;
     private Button routeChoice;
     private Button update;
     private BusStopManager stopManager;
     private String routeNo;
     private Map<String, Set<Integer>> routeToStopID;
-    private String[] routeOptions;
+    private boolean reset;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        translink = new BusParser();
+        stopManager = new BusStopManager();
         getRouteStops();
         getRouteNo();
         routeChoice = (Button) findViewById(R.id.routeChoice);
@@ -71,6 +69,7 @@ public class MapsActivity extends FragmentActivity {
         update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 new TranslinkClient().execute();
                 Toast.makeText(getApplicationContext(), "updating", Toast.LENGTH_SHORT).show();
             }
@@ -110,7 +109,7 @@ public class MapsActivity extends FragmentActivity {
     private void setUpMap() {
         mMap.setBuildingsEnabled(true);
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-        //mMap.setOnMarkerClickListener(new markerPressed());
+        mMap.setOnMarkerClickListener(new markerPressed());
     }
 
 
@@ -118,15 +117,16 @@ public class MapsActivity extends FragmentActivity {
 
         @Override
         public boolean onMarkerClick(Marker marker) {
-            if(displayList.get(marker) != null) {
-                if(displayList.values().size() > 1){
-                    translink.selectBus(displayList.get(marker).getVehicleNo());
-
+            if(busMap.get(marker) != null) {
+                if(busMap.values().size() > 1){
+                    translink.setSelectedBus(busMap.get(marker));
+                    Toast.makeText(getApplicationContext(), "bus selected", Toast.LENGTH_SHORT).show();
                 }else{
                     translink.resetBus();
                 }
                 new TranslinkClient().execute();
             } else {
+                stopManager.setSelectedStop(stopMap.get(marker));
                 marker.remove();
             }
             return true;
@@ -149,6 +149,9 @@ public class MapsActivity extends FragmentActivity {
                     routeNo = input.getText().toString();
                     routeChoice.setEnabled(false);
                     if(options.contains(routeNo)) {
+                        reset = true;
+                        translink.resetBus();
+                        stopManager.resetStops();
                         new TranslinkClient().execute();
                     } else{
                         Toast.makeText(getApplicationContext(), "route Invalid", Toast.LENGTH_SHORT).show();
@@ -171,15 +174,20 @@ public class MapsActivity extends FragmentActivity {
         @Override
         protected Object doInBackground(Object[] params) {
 
-            displayList = new HashMap<Marker,Bus>();
-            translink = new BusParser(routeNo);
-            myBusList = translink.buslist;
+            busMap = new HashMap<Marker,Bus>();
+            translink.parse(routeNo);
+            myBusList = translink.getBuslist();
 
-                stopManager = new BusStopManager(routeToStopID.get(routeNo));
-                stopList = stopManager.getStops();
-                stopList.remove(null);
-
-
+            if(reset){
+                stopManager.parse(routeToStopID.get(routeNo));
+                reset = false;
+            } else{
+                if(translink.getSelectedBus() != null) {
+                    stopManager.update(translink.getSelectedBus());
+                }
+            }
+            stopList = stopManager.getStops();
+            stopList.remove(null);
 
             return null;
         }
@@ -188,7 +196,6 @@ public class MapsActivity extends FragmentActivity {
         protected void onPostExecute(Object o) {
             super.onPostExecute(o);
 
-
             mMap.clear();
                 for (Stop stop : stopList) {
                     mMap.addMarker(new MarkerOptions()
@@ -196,13 +203,23 @@ public class MapsActivity extends FragmentActivity {
                             .title(String.valueOf(stop.getStopNo()))
                             .flat(true)
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.stop)));
-
                 }
+
+            if(stopList.size() != 0){
+                for (Stop stop : stopList) {
+                    stopMap.put(mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(stop.getLatitude(), stop.getLongitude()))
+                            .title(String.valueOf(stop.getStopNo()))
+                            .flat(true)
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.stop))),
+                            stop);
+                }
+         }
 
             if(myBusList.size() != 0){
             for (Bus bus : myBusList) {
                 if(bus.getLatitude() != 0 && bus.getLongitude() != 0) {
-                    displayList.put(mMap.addMarker(new MarkerOptions()
+                    busMap.put(mMap.addMarker(new MarkerOptions()
                             .position(new LatLng(bus.getLatitude(), bus.getLongitude()))
                             .title(String.valueOf(bus.getVehicleNo()))
                             .flat(true)
@@ -213,15 +230,14 @@ public class MapsActivity extends FragmentActivity {
                 Toast.makeText(getApplicationContext(), "No bus", Toast.LENGTH_LONG).show();
             }
 
-            if (displayList.values().size() > 0) {
+            if (busMap.values().size() > 0 || stopList.size() > 0) {
                 LatLngBounds.Builder bounds = new LatLngBounds.Builder();
-                for (Bus bus : displayList.values()) {
+                for (Bus bus : busMap.values()) {
                     bounds.include(new LatLng(bus.getLatitude(), bus.getLongitude()));
                 }
                     for (Stop stop : stopList) {
                         bounds.include(new LatLng(stop.getLatitude(), stop.getLongitude()));
                     }
-
 
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 50));
             }

@@ -1,11 +1,5 @@
 package com.example.chiang.busstop.Model;
 
-import android.util.Log;
-
-import com.example.chiang.busstop.MapsActivity;
-import com.google.android.gms.maps.model.LatLng;
-
-import org.simpleframework.xml.Default;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -13,32 +7,34 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.parsers.SAXParserFactory;
 
 /**
- * Created by chiang on 12/24/2014.
+ * Created by chiang on 1/4/2015.
  */
-public class StopParser extends DefaultHandler{
+public class StopParserUpdate extends DefaultHandler{
 
-    public Stop getStop() {
-        return stop;
+    public Set<Stop> getStopList() {
+        return stopList;
     }
 
+    private Set<Stop> stopList;
     private Stop stop;
-    private String TAG = "StopParser";
+    private String TAG = "StopParserUpdate";
     private String origin;
     private String data = "";
     private Boolean dataTag = false;
     private Set<Integer> blackList = new HashSet<Integer>();
 
-    public StopParser(int stopNo){
-        origin ="http://api.translink.ca/rttiapi/v1/stops/" +
-                stopNo +
-                "?apikey=faYApdPzIJThbIF16yCP";
+    public StopParserUpdate(Bus bus){
+        origin ="http://api.translink.ca/rttiapi/v1/stops?apikey=faYApdPzIJThbIF16yCP" +
+                "&lat=" + bus.getLatitude() +
+                "&long=" + bus.getLongitude() +
+                "&radius=100" +
+                "&routeNo=" + bus.getRouteNo();
         get();
     }
 
@@ -86,8 +82,10 @@ public class StopParser extends DefaultHandler{
             stop.setDistance(Integer.parseInt(data));
         }else if(localName.equalsIgnoreCase("Routes")) {
             stop.setRoutes(data);
+        }else if(localName.equalsIgnoreCase("Stop")) {
+            stopList.add(stop);
         }
-   }
+    }
 
 
     @Override

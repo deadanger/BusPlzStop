@@ -15,11 +15,11 @@ public class Bus {
         this.vehicleNo = vehicleNo;
     }
 
-    public int getRouteNo() {
+    public String getRouteNo() {
         return routeNo;
     }
 
-    public void setRouteNo(int routeNo) {
+    public void setRouteNo(String routeNo) {
         this.routeNo = routeNo;
     }
 
@@ -55,8 +55,25 @@ public class Bus {
         this.recordedTime = recordedTime;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Bus)) return false;
+
+        Bus bus = (Bus) o;
+
+        if (vehicleNo != bus.vehicleNo) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return vehicleNo;
+    }
+
     private int vehicleNo;
-    private int routeNo;
+    private String routeNo;
     private String direction;
     private double latitude;
     private double longitude;

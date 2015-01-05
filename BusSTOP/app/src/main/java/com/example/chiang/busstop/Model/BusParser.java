@@ -19,22 +19,18 @@ import javax.xml.parsers.SAXParserFactory;
  */
 public class BusParser extends DefaultHandler{
 
-    public ArrayList<Bus> buslist;
+    private ArrayList<Bus> buslist;
     public Bus bus;
     private String TAG = "BusParser";
-    private String origin =
-            "http://api.translink.ca/rttiapi/v1/buses?apikey=faYApdPzIJThbIF16yCP&routeNo=";
     private String data = "";
     private Boolean dataTag = false;
-    private Set<Integer> blackList = new HashSet<Integer>();
+    private Bus selectedBus;
 
-    public BusParser(String busRoute){
-        origin = origin + busRoute;
-        get();
-    }
-
-    private void get(){
+    public void parse(String busRoute){
         try {
+            String origin =
+                    "http://api.translink.ca/rttiapi/v1/buses?apikey=faYApdPzIJThbIF16yCP&routeNo=";
+            origin = origin + busRoute;
             buslist = new ArrayList<Bus>();
             XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
             xmlReader.setContentHandler(this);
@@ -63,7 +59,7 @@ public class BusParser extends DefaultHandler{
         if(localName.equalsIgnoreCase("VehicleNo")) {
             bus.setVehicleNo(Integer.parseInt(data));
         }else if(localName.equalsIgnoreCase("RouteNo")) {
-            bus.setRouteNo(Integer.parseInt(data));
+            bus.setRouteNo(data);
         }else if(localName.equalsIgnoreCase("RecordedTime")) {
             bus.setRecordedTime(data);
         }else if(localName.equalsIgnoreCase("Latitude")) {
@@ -73,7 +69,7 @@ public class BusParser extends DefaultHandler{
         }else if(localName.equalsIgnoreCase("Direction")) {
             bus.setDirection(data);
         } else if (localName.equals("Bus")){
-            if(!blackList.contains(bus.getVehicleNo())) {
+            if(selectedBus == null || bus.equals(selectedBus)){
                 buslist.add(bus);
             }
         }
@@ -90,17 +86,20 @@ public class BusParser extends DefaultHandler{
         }
     }
 
-    public void selectBus(int selection){
-        for(Bus bus: buslist){
-            if(bus.getVehicleNo() != selection){
-                blackList.add(bus.getVehicleNo());
-            }
-        }
 
+    public ArrayList<Bus> getBuslist() {
+        return buslist;
     }
 
     public void resetBus(){
-        blackList.clear();
+        selectedBus = null;
     }
 
+    public Bus getSelectedBus() {
+        return selectedBus;
+    }
+
+    public void setSelectedBus(Bus selectedBus) {
+        this.selectedBus = selectedBus;
+    }
 }
