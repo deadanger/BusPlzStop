@@ -51,14 +51,18 @@ public class BusStopManager {
 
 
 
-    // return true if the bus has arrived to a stop or passed a stop
-    public boolean update(Bus bus){
+    // return true if the bus has arrived to selected stop
+    public boolean isArrive(Bus bus){
         updateParser = new StopParserUpdate(bus);
 
         if(selectedStop != null) {
             return (selectedStop.equals(updateParser.getStop()));
         }
         return false;
+    }
+
+    public void filterBusStops(Bus bus){
+
     }
 
     public Stop getSelectedStop() {
@@ -72,5 +76,8 @@ public class BusStopManager {
     public void reset(){
         selectedStop = null;
     }
+
+
+
 
 }

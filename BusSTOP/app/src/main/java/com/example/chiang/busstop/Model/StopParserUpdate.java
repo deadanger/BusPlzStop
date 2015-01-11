@@ -31,7 +31,7 @@ public class StopParserUpdate extends DefaultHandler{
         origin ="http://api.translink.ca/rttiapi/v1/stops?apikey=faYApdPzIJThbIF16yCP" +
                 "&lat=" + bus.getLatitude() +
                 "&long=" + bus.getLongitude() +
-                "&radius=100" +
+                "&radius=500" +
                 "&routeNo=" + bus.getRouteNo();
         get();
     }

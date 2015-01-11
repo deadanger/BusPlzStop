@@ -2,6 +2,7 @@ package com.example.chiang.busstop;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -51,33 +52,6 @@ public class MapsActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        translink = new BusParser();
-        stopManager = new BusStopManager();
-        getRouteStops();
-        getRouteNo();
-        routeChoice = (Button) findViewById(R.id.routeChoice);
-        routeChoice.bringToFront();
-        routeChoice.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getRouteNo();
-                Toast.makeText(getApplicationContext(), "new route", Toast.LENGTH_SHORT).show();
-            }
-        });
-        update = (Button) findViewById(R.id.update);
-        update.bringToFront();
-        update.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                routeChoice.setEnabled(false);
-                update.setEnabled(false);
-                new TranslinkClient().execute();
-                Toast.makeText(getApplicationContext(), "updating", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
-
         setUpMapIfNeeded();
 
     }
@@ -111,6 +85,30 @@ public class MapsActivity extends FragmentActivity {
         mMap.setBuildingsEnabled(true);
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mMap.setOnMarkerClickListener(new markerPressed());
+        translink = new BusParser();
+        stopManager = new BusStopManager();
+        getRouteStops();
+        getRouteNo();
+        routeChoice = (Button) findViewById(R.id.routeChoice);
+        routeChoice.bringToFront();
+        routeChoice.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getRouteNo();
+                Toast.makeText(getApplicationContext(), "new route", Toast.LENGTH_SHORT).show();
+            }
+        });
+        update = (Button) findViewById(R.id.update);
+        update.bringToFront();
+        update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                routeChoice.setEnabled(false);
+                update.setEnabled(false);
+                new TranslinkClient().execute();
+                Toast.makeText(getApplicationContext(), "updating", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 
@@ -149,6 +147,11 @@ public class MapsActivity extends FragmentActivity {
         builder.setTitle("Bus Route Selection");
         builder.setMessage("Type your bus route in full (99 is 099)");
         builder.setView(input);
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -192,7 +195,11 @@ public class MapsActivity extends FragmentActivity {
                 reset = false;
             } else{
                 if(translink.getSelectedBus() != null) {
-                    stopManager.update(translink.getSelectedBus());
+                    if(stopManager.isArrive(translink.getSelectedBus())){
+                        Log.i("detector", "bus arrived");
+                    } else {
+                        Log.i("detector", "bus has not arrived");
+                    }
                 }
             }
             stopList = stopManager.getStops();
@@ -241,11 +248,13 @@ public class MapsActivity extends FragmentActivity {
                         bounds.include(new LatLng(stop.getLatitude(), stop.getLongitude()));
                     }
 
-                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 90));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 30));
             }
             routeChoice.setEnabled(true);
             update.setEnabled(true);
-        }
+
+}
+
 
     }
 }
