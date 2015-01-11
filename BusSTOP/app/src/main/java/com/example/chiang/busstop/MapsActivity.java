@@ -69,7 +69,8 @@ public class MapsActivity extends FragmentActivity {
         update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                routeChoice.setEnabled(false);
+                update.setEnabled(false);
                 new TranslinkClient().execute();
                 Toast.makeText(getApplicationContext(), "updating", Toast.LENGTH_SHORT).show();
             }
@@ -126,8 +127,14 @@ public class MapsActivity extends FragmentActivity {
                 }
                 new TranslinkClient().execute();
             } else {
-                stopManager.setSelectedStop(stopMap.get(marker));
-                marker.remove();
+                reset = true;
+                if(stopMap.values().size() > 1){
+                    stopManager.setSelectedStop(stopMap.get(marker));
+                    Toast.makeText(getApplicationContext(), "stop selected", Toast.LENGTH_SHORT).show();
+                }else{
+                    stopManager.reset();
+                }
+                new TranslinkClient().execute();
             }
             return true;
         }
@@ -148,10 +155,11 @@ public class MapsActivity extends FragmentActivity {
                 try {
                     routeNo = input.getText().toString();
                     routeChoice.setEnabled(false);
+                    update.setEnabled(false);
                     if(options.contains(routeNo)) {
                         reset = true;
                         translink.resetBus();
-                        stopManager.resetStops();
+                        stopManager.reset();
                         new TranslinkClient().execute();
                     } else{
                         Toast.makeText(getApplicationContext(), "route Invalid", Toast.LENGTH_SHORT).show();
@@ -179,6 +187,7 @@ public class MapsActivity extends FragmentActivity {
             myBusList = translink.getBuslist();
 
             if(reset){
+                stopMap = new HashMap<Marker, Stop>();
                 stopManager.parse(routeToStopID.get(routeNo));
                 reset = false;
             } else{
@@ -197,13 +206,6 @@ public class MapsActivity extends FragmentActivity {
             super.onPostExecute(o);
 
             mMap.clear();
-                for (Stop stop : stopList) {
-                    mMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(stop.getLatitude(), stop.getLongitude()))
-                            .title(String.valueOf(stop.getStopNo()))
-                            .flat(true)
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.stop)));
-                }
 
             if(stopList.size() != 0){
                 for (Stop stop : stopList) {
@@ -239,9 +241,10 @@ public class MapsActivity extends FragmentActivity {
                         bounds.include(new LatLng(stop.getLatitude(), stop.getLongitude()));
                     }
 
-                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 50));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 90));
             }
             routeChoice.setEnabled(true);
+            update.setEnabled(true);
         }
 
     }

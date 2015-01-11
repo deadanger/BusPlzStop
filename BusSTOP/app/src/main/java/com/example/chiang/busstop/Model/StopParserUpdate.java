@@ -17,17 +17,15 @@ import javax.xml.parsers.SAXParserFactory;
  */
 public class StopParserUpdate extends DefaultHandler{
 
-    public Set<Stop> getStopList() {
-        return stopList;
+    public Stop getStop() {
+        return stop;
     }
 
-    private Set<Stop> stopList;
     private Stop stop;
     private String TAG = "StopParserUpdate";
     private String origin;
     private String data = "";
     private Boolean dataTag = false;
-    private Set<Integer> blackList = new HashSet<Integer>();
 
     public StopParserUpdate(Bus bus){
         origin ="http://api.translink.ca/rttiapi/v1/stops?apikey=faYApdPzIJThbIF16yCP" +
@@ -82,8 +80,6 @@ public class StopParserUpdate extends DefaultHandler{
             stop.setDistance(Integer.parseInt(data));
         }else if(localName.equalsIgnoreCase("Routes")) {
             stop.setRoutes(data);
-        }else if(localName.equalsIgnoreCase("Stop")) {
-            stopList.add(stop);
         }
     }
 

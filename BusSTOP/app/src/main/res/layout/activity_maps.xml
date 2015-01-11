@@ -24,7 +24,7 @@
 
     <fragment
         android:layout_width="match_parent"
-        android:layout_height="516dp"
+        android:layout_height="521dp"
         android:id="@+id/map"
         tools:context=".MapsActivity"
         android:name="com.google.android.gms.maps.SupportMapFragment"
