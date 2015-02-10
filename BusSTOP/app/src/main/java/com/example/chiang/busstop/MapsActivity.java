@@ -1,7 +1,9 @@
 package com.example.chiang.busstop;
 
 import android.app.AlertDialog;
+import android.app.Notification;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
@@ -21,6 +23,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -47,6 +51,9 @@ public class MapsActivity extends FragmentActivity {
     private String routeNo;
     private Map<String, Set<Integer>> routeToStopID;
     private boolean reset;
+    private boolean busSelected;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,8 +126,10 @@ public class MapsActivity extends FragmentActivity {
             if(busMap.get(marker) != null) {
                 if(busMap.values().size() > 1){
                     translink.setSelectedBus(busMap.get(marker));
+                    busSelected = true;
                     Toast.makeText(getApplicationContext(), "bus selected", Toast.LENGTH_SHORT).show();
                 }else{
+                    busSelected = false;
                     translink.resetBus();
                 }
                 new TranslinkClient().execute();
@@ -189,16 +198,18 @@ public class MapsActivity extends FragmentActivity {
             translink.parse(routeNo);
             myBusList = translink.getBuslist();
 
-            if(reset){
+            if(reset){ // pick route
                 stopMap = new HashMap<Marker, Stop>();
-                stopManager.parse(routeToStopID.get(routeNo));
+                if(translink.getSelectedBus() != null){
+                    stopManager.parse(routeToStopID.get(routeNo), translink.getSelectedBus());
+                } else {
+                    stopManager.parse(routeToStopID.get(routeNo));
+                }
                 reset = false;
-            } else{
+            } else{ // update
                 if(translink.getSelectedBus() != null) {
-                    if(stopManager.isArrive(translink.getSelectedBus())){
+                    if(hasArrived()){
                         Log.i("detector", "bus arrived");
-                    } else {
-                        Log.i("detector", "bus has not arrived");
                     }
                 }
             }
@@ -206,6 +217,15 @@ public class MapsActivity extends FragmentActivity {
             stopList.remove(null);
 
             return null;
+        }
+
+        private boolean hasSelectedStop(){return stopManager.hasSelectedStop();};
+        private boolean hasSelectedBus(){return busSelected;};
+        private boolean hasArrived(){
+            if(hasSelectedStop() && hasSelectedBus()){
+                return stopManager.isArrive(translink.getSelectedBus());
+            }
+            return false;
         }
 
         @Override
@@ -243,6 +263,14 @@ public class MapsActivity extends FragmentActivity {
                 LatLngBounds.Builder bounds = new LatLngBounds.Builder();
                 for (Bus bus : busMap.values()) {
                     bounds.include(new LatLng(bus.getLatitude(), bus.getLongitude()));
+                    if(busSelected){
+                        Circle circle = mMap.addCircle(new CircleOptions()
+                                .center(new LatLng(bus.getLatitude(), bus.getLongitude()))
+                                .radius(500)
+                                .strokeWidth(2)
+                                .strokeColor(Color.BLUE)
+                                .fillColor(Color.parseColor("#500084d3")));
+                    }
                 }
                     for (Stop stop : stopList) {
                         bounds.include(new LatLng(stop.getLatitude(), stop.getLongitude()));
@@ -250,6 +278,8 @@ public class MapsActivity extends FragmentActivity {
 
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 30));
             }
+
+
             routeChoice.setEnabled(true);
             update.setEnabled(true);
 

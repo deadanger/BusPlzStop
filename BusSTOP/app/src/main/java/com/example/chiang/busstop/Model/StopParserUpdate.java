@@ -17,11 +17,12 @@ import javax.xml.parsers.SAXParserFactory;
  */
 public class StopParserUpdate extends DefaultHandler{
 
-    public Stop getStop() {
-        return stop;
+    public Set<Stop> getStops() {
+        return stops;
     }
 
     private Stop stop;
+    private Set<Stop> stops = new HashSet<Stop>();
     private String TAG = "StopParserUpdate";
     private String origin;
     private String data = "";
@@ -52,9 +53,9 @@ public class StopParserUpdate extends DefaultHandler{
         super.startElement(uri, localName, qName, attributes);
         dataTag = true;
         data = "";
-        if(localName.equals("Stop"))
+        if(localName.equals("Stop")) {
             stop = new Stop();
-
+        }
     }
 
     @Override
@@ -80,6 +81,8 @@ public class StopParserUpdate extends DefaultHandler{
             stop.setDistance(Integer.parseInt(data));
         }else if(localName.equalsIgnoreCase("Routes")) {
             stop.setRoutes(data);
+        } else if(localName.equalsIgnoreCase("Stop")) {
+            stops.add(stop);
         }
     }
 

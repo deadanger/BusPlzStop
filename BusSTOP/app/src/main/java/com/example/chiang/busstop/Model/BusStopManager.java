@@ -39,6 +39,21 @@ public class BusStopManager {
         }
     }
 
+
+    public void parse(Set<Integer> stopNoList, Bus bus){
+        stopSet.clear();
+        if(selectedStop == null) {
+            for (Integer stopID : stopNoList) {
+                parseHelper(stopID);
+            }
+            stopSet.remove(null);
+            filterBusStops(bus);
+        } else{
+            stopSet.clear();
+            stopSet.add(selectedStop);
+        }
+    }
+
     private void parseHelper(int stopNo){
             parser = new StopParser(stopNo);
             stopSet.add(parser.getStop());
@@ -53,16 +68,20 @@ public class BusStopManager {
 
     // return true if the bus has arrived to selected stop
     public boolean isArrive(Bus bus){
-        updateParser = new StopParserUpdate(bus);
-
-        if(selectedStop != null) {
-            return (selectedStop.equals(updateParser.getStop()));
-        }
-        return false;
+        return isSelectedStopNearBus(bus);
     }
 
+    // maintain all stops to be in same direction as the bus
     public void filterBusStops(Bus bus){
-
+        for(Stop stop : stopSet) {
+            StopEstimateManager manager = new StopEstimateManager(
+                    stop.getStopNo(), bus.getRouteNo());
+            StopEstimate est = manager.getStopEstimate();
+            if(!est.getDirection().equalsIgnoreCase(bus.getDirection())){
+                 stopSet.remove(stop);
+                Log.i(TAG, "bus stop removed");
+            }
+        }
     }
 
     public Stop getSelectedStop() {
@@ -77,7 +96,50 @@ public class BusStopManager {
         selectedStop = null;
     }
 
+    private boolean isSelectedStopNearBus(Bus bus){
+        if(hasSelectedStop()){
+            return isAnyStopsSelected(getStopsNearBus(bus));
+        }
+        return false;
+    }
+
+    private boolean isAnyStopsSelected(Set<Stop> stops){
+        for(Stop stop: stops){
+            if(stop.getStopNo() == selectedStop.getStopNo()){
+                return true;
+            }
+        }
+        return false;
+    }
 
 
+    private Set<Stop> getStopsNearBus(Bus bus){
+        return  new StopParserUpdate(bus).getStops();
+    }
+
+    public boolean hasSelectedStop(){
+        return selectedStop != null;
+    }
+
+
+    private class StopEstimateManager{
+
+        private StopEstimateParser parser;
+        private StopEstimate stopEstimate;
+
+        public StopEstimateManager(int stopNo, String routeNo){
+            parser = new StopEstimateParser(stopNo, routeNo);
+        }
+
+        private void get(){
+            stopEstimate = parser.getStopEstimate();
+        }
+
+        public StopEstimate getStopEstimate(){
+            return stopEstimate;
+        }
+
+
+    }
 
 }

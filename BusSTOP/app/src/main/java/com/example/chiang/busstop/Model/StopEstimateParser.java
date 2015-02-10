@@ -27,7 +27,8 @@ public class StopEstimateParser extends DefaultHandler {
 
     public StopEstimateParser(int stopNo, String routeNo){
         origin ="http://api.translink.ca/rttiapi/v1/stops/" + stopNo +
-                "/estimates?apikey=faYApdPzIJThbIF16yCP&routeNo=" + routeNo;
+                "/estimates?apikey=faYApdPzIJThbIF16yCP&count=3&timeframe=120&routeNo ="
+        + routeNo;
         get();
     }
 
