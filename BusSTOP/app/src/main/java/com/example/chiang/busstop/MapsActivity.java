@@ -2,6 +2,8 @@ package com.example.chiang.busstop;
 
 import android.app.AlertDialog;
 import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.nfc.Tag;
@@ -52,6 +54,7 @@ public class MapsActivity extends FragmentActivity {
     private Map<String, Set<Integer>> routeToStopID;
     private boolean reset;
     private boolean busSelected;
+
 
 
 
@@ -195,6 +198,7 @@ public class MapsActivity extends FragmentActivity {
         protected Object doInBackground(Object[] params) {
 
             busMap = new HashMap<Marker,Bus>();
+
             translink.parse(routeNo);
             myBusList = translink.getBuslist();
 
@@ -210,6 +214,8 @@ public class MapsActivity extends FragmentActivity {
                 if(translink.getSelectedBus() != null) {
                     if(hasArrived()){
                         Log.i("detector", "bus arrived");
+                        notifyUser();
+
                     }
                 }
             }
@@ -284,6 +290,26 @@ public class MapsActivity extends FragmentActivity {
             update.setEnabled(true);
 
 }
+        private boolean checkValidRoute() {
+
+        }
+        private void notifyUser() {
+            int ID = 0;
+                    NotificationManager notificationManager =
+                            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(ID, getNotification());
+        }
+        private Notification getNotification() {
+            Notification.Builder notificationSetting;
+            notificationSetting = new Notification.Builder(getApplicationContext())
+                    .setContentTitle("Bus Notification")
+                    .setContentText("almost there. Be prepared!")
+                    .setLights(Color.RED, 3000, 3000)
+                    .setSmallIcon(R.drawable.selected_bus);
+
+            return notificationSetting.build();
+        }
+
 
 
     }
