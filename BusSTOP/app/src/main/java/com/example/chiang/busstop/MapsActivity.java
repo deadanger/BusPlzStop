@@ -151,8 +151,6 @@ public class MapsActivity extends FragmentActivity {
     }
 
     private void getRouteNo(){
-        String[] datas = getResources().getStringArray(R.array.routeOptions);
-        final List<String> options = Arrays.asList(datas);
         final EditText input = new EditText(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(R.drawable.selected_bus);
@@ -171,7 +169,7 @@ public class MapsActivity extends FragmentActivity {
                     routeNo = input.getText().toString();
                     routeChoice.setEnabled(false);
                     update.setEnabled(false);
-                    if(options.contains(routeNo)) {
+                    if(checkValidRoute(routeNo)) {
                         reset = true;
                         translink.resetBus();
                         stopManager.reset();
@@ -187,6 +185,32 @@ public class MapsActivity extends FragmentActivity {
             }
         });
         builder.create().show();
+    }
+
+    private boolean checkValidRoute(String string){
+        String[] datas = getResources().getStringArray(R.array.routeOptions);
+        final List<String> options = Arrays.asList(datas);
+
+        fixRouteNo(string);
+        return options.contains(routeNo);
+    }
+
+    private void fixRouteNo(String string){
+        if(isFirstLetterNumber(string)){
+            routeNo = makeThreeNumber(string);
+        }
+    }
+
+    private String makeThreeNumber(String userInput){
+        if(userInput.length() == 1){ userInput = "00".concat(userInput);}
+        else if(userInput.length() == 2){ userInput = "0".concat(userInput);}
+
+        return userInput;
+    }
+
+    private boolean isFirstLetterNumber(String userInput){
+        char c = userInput.charAt(0);
+        return (c >= '0' && c <= '9');
     }
 
 
@@ -240,28 +264,31 @@ public class MapsActivity extends FragmentActivity {
 
             mMap.clear();
 
-            if(stopList.size() != 0){
+            if (stopList.size() != 0) {
                 for (Stop stop : stopList) {
                     stopMap.put(mMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(stop.getLatitude(), stop.getLongitude()))
-                            .title(String.valueOf(stop.getStopNo()))
-                            .flat(true)
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.stop))),
+                                    .position(new LatLng(stop.getLatitude(), stop.getLongitude()))
+                                    .title(String.valueOf(stop.getStopNo()))
+                                    .flat(true)
+                                    .anchor(0.5f,0.5f)
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.stop))),
                             stop);
                 }
-         }
+            }
 
-            if(myBusList.size() != 0){
-            for (Bus bus : myBusList) {
-                if(bus.getLatitude() != 0 && bus.getLongitude() != 0) {
-                    busMap.put(mMap.addMarker(new MarkerOptions()
-                            .position(new LatLng(bus.getLatitude(), bus.getLongitude()))
-                            .title(String.valueOf(bus.getVehicleNo()))
-                            .flat(true)
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus)))
-                            , bus);
+            if (myBusList.size() != 0) {
+                for (Bus bus : myBusList) {
+                    if (bus.getLatitude() != 0 && bus.getLongitude() != 0) {
+                        busMap.put(mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(bus.getLatitude(), bus.getLongitude()))
+                                .title(String.valueOf(bus.getVehicleNo()))
+                                .flat(true)
+                                .anchor(0.5f,0.5f)
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus)))
+                                , bus);
+                    }
                 }
-            }} else {
+            } else {
                 Toast.makeText(getApplicationContext(), "No bus", Toast.LENGTH_LONG).show();
             }
 
@@ -269,7 +296,7 @@ public class MapsActivity extends FragmentActivity {
                 LatLngBounds.Builder bounds = new LatLngBounds.Builder();
                 for (Bus bus : busMap.values()) {
                     bounds.include(new LatLng(bus.getLatitude(), bus.getLongitude()));
-                    if(busSelected){
+                    if (busSelected) {
                         Circle circle = mMap.addCircle(new CircleOptions()
                                 .center(new LatLng(bus.getLatitude(), bus.getLongitude()))
                                 .radius(500)
@@ -278,9 +305,9 @@ public class MapsActivity extends FragmentActivity {
                                 .fillColor(Color.parseColor("#500084d3")));
                     }
                 }
-                    for (Stop stop : stopList) {
-                        bounds.include(new LatLng(stop.getLatitude(), stop.getLongitude()));
-                    }
+                for (Stop stop : stopList) {
+                    bounds.include(new LatLng(stop.getLatitude(), stop.getLongitude()));
+                }
 
                 mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 30));
             }
@@ -288,10 +315,6 @@ public class MapsActivity extends FragmentActivity {
 
             routeChoice.setEnabled(true);
             update.setEnabled(true);
-
-}
-        private boolean checkValidRoute() {
-
         }
         private void notifyUser() {
             int ID = 0;
