@@ -93,7 +93,7 @@ public class MapsActivity extends FragmentActivity {
 
     private void setUpMap() {
         mMap.setBuildingsEnabled(true);
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.setOnMarkerClickListener(new markerPressed());
         translink = new BusParser();
         stopManager = new BusStopManager();
@@ -155,7 +155,7 @@ public class MapsActivity extends FragmentActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(R.drawable.selected_bus);
         builder.setTitle("Bus Route Selection");
-        builder.setMessage("Type your bus route in full (99 is 099)");
+        builder.setMessage("Type your bus route");
         builder.setView(input);
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
@@ -328,7 +328,8 @@ public class MapsActivity extends FragmentActivity {
                     .setContentTitle("Bus Notification")
                     .setContentText("almost there. Be prepared!")
                     .setLights(Color.RED, 3000, 3000)
-                    .setSmallIcon(R.drawable.selected_bus);
+                    .setSmallIcon(R.drawable.selected_bus)
+                    .setVibrate(new long[]{1000,1000,1000,1000});
 
             return notificationSetting.build();
         }
