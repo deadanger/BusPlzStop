@@ -6,10 +6,10 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
-import android.nfc.Tag;
 import android.os.AsyncTask;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -32,12 +32,13 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MapsActivity extends FragmentActivity {
@@ -54,22 +55,22 @@ public class MapsActivity extends FragmentActivity {
     private Map<String, Set<Integer>> routeToStopID;
     private boolean reset;
     private boolean busSelected;
-
-
-
+    private Timer timer;
+    private long period = 60000;
+    Handler handler;
+    TimerTask myTimerTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
-
     }
 
     private void getRouteStops(){
         RouteStopParser parser = new RouteStopParser(getAssets());
         routeToStopID = parser.getRouteToStopID();
-        Log.i("236 getRouteStops", ""+ routeToStopID.keySet().size());
+        Log.i("236 getRouteStops", "" + routeToStopID.keySet().size());
     }
 
     @Override
@@ -89,6 +90,7 @@ public class MapsActivity extends FragmentActivity {
                 setUpMap();
             }
         }
+        setUpTimer();
     }
 
     private void setUpMap() {
@@ -119,6 +121,53 @@ public class MapsActivity extends FragmentActivity {
                 Toast.makeText(getApplicationContext(), "updating", Toast.LENGTH_SHORT).show();
             }
         });
+
+
+    }
+
+    Runnable r;
+    private void setUpTimer(){
+        handler = new Handler();
+
+       myTimerTask = new TimerTask() {
+
+            @Override
+            public void run() {
+                // post a runnable to the handler
+
+                r = new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Log.i("update", "getting update ");
+                        getUpdate();
+                    }
+
+                };
+                handler.post(r);
+            }
+
+        };
+        timer = new Timer();
+        timer.schedule(myTimerTask, 0, period);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handler.removeCallbacks(r);
+        myTimerTask.cancel();
+        timer.cancel();
+
+    }
+
+    private void getUpdate(){
+
+                routeChoice.setEnabled(false);
+                update.setEnabled(false);
+                new TranslinkClient().execute();
+                Toast.makeText(getApplicationContext(), "updating", Toast.LENGTH_SHORT).show();
+
     }
 
 
@@ -169,12 +218,12 @@ public class MapsActivity extends FragmentActivity {
                     routeNo = input.getText().toString();
                     routeChoice.setEnabled(false);
                     update.setEnabled(false);
-                    if(checkValidRoute(routeNo)) {
+                    if (checkValidRoute(routeNo)) {
                         reset = true;
                         translink.resetBus();
                         stopManager.reset();
                         new TranslinkClient().execute();
-                    } else{
+                    } else {
                         Toast.makeText(getApplicationContext(), "route Invalid", Toast.LENGTH_SHORT).show();
                         getRouteNo();
                     }
@@ -333,9 +382,6 @@ public class MapsActivity extends FragmentActivity {
 
             return notificationSetting.build();
         }
-
-
-
     }
 }
 
